@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Card, Title, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_KEY, BASE_URL, IMAGE_BASE_URL } from '../services/Api';
 
-export default function Movies({ navigation, route }) {
+export default function Movies() {
   const [movies, setMovies] = useState([]);
-  const [favorites, setFavorites] = useState({}); // controle visual
+  const [favorites, setFavorites] = useState({});
 
   useEffect(() => {
     async function fetchMovies() {
@@ -23,7 +23,7 @@ export default function Movies({ navigation, route }) {
     fetchMovies();
   }, []);
 
-  const loadFavorites = async (fetchedMovies) => {
+  const loadFavorites = async () => {
     const stored = await AsyncStorage.getItem('FAVORITE_MOVIES');
     const parsed = stored ? JSON.parse(stored) : [];
     const favoriteMap = {};
@@ -33,28 +33,30 @@ export default function Movies({ navigation, route }) {
     setFavorites(favoriteMap);
   };
 
-  const toggleFavorite = async (movie) => {
+  const toggleFavorite = useCallback(async (movie) => {
     try {
       const stored = await AsyncStorage.getItem('FAVORITE_MOVIES');
       const current = stored ? JSON.parse(stored) : [];
-      const exists = current.find((m) => m.id === movie.id);
 
       let updated;
+      let updatedFavorites = { ...favorites };
+
+      const exists = current.find((m) => m.id === movie.id);
+
       if (exists) {
         updated = current.filter((m) => m.id !== movie.id);
+        delete updatedFavorites[movie.id];
       } else {
         updated = [...current, movie];
+        updatedFavorites[movie.id] = true;
       }
 
       await AsyncStorage.setItem('FAVORITE_MOVIES', JSON.stringify(updated));
-      setFavorites((prev) => ({
-        ...prev,
-        [movie.id]: !prev[movie.id],
-      }));
+      setFavorites(updatedFavorites); // Atualiza o estado para re-renderizar
     } catch (error) {
       console.error('Erro ao salvar favorito:', error);
     }
-  };
+  }, [favorites]);
 
   return (
     <View style={styles.container}>
@@ -85,10 +87,12 @@ export default function Movies({ navigation, route }) {
             </View>
           </Card>
         )}
+        extraData={favorites} // força re-render quando os favoritos mudam
       />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

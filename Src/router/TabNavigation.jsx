@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import GenerMovie from '../Screens/GenerMovie';
 import Movies from '../Screens/Movies';
 import listamovies from '../Screens/listamovies';
+import User from '../Screens/User';
+
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigation() {
@@ -13,7 +15,7 @@ export default function TabNavigation() {
     <PaperProvider>
       <Tab.Navigator>
         <Tab.Screen
-          name="GenerMovies"
+          name="Genero"
           component={GenerMovie}
           options={{
             tabBarIcon: ({ color, size }) => (
@@ -38,6 +40,16 @@ export default function TabNavigation() {
           options={{
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="heart" color={color} size={size} />
+            ),
+            headerShown: false,
+          }}/>
+
+        <Tab.Screen
+          name="User"
+          component={User}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" color={color} size={size} />
             ),
             headerShown: false,
           }}/>

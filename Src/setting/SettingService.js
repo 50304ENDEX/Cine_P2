@@ -1,20 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 async function listar() {
-    const JsonValue = await AsyncStorage.getItem('usuarios');
-    return JsonValue != null ? JSON.parse(usuarios) : [];
+  const jsonValue = await AsyncStorage.getItem('usuarios');
+  return jsonValue != null ? JSON.parse(jsonValue) : [];
 }
 
-async function salvar(usuario){
-    usuaio.id = new Date().getTime();
-    const usuarios = await listar()
-    usuarios.push(usuario);
-    await AsyncStorage.setItem('usuarios', JSON.stringify(usuarios));
+async function salvar(usuario) {
+  usuario.id = new Date().getTime(); // corrigido o nome da variável
+  const usuarios = await listar();
+  usuarios.push(usuario);
+  await AsyncStorage.setItem('usuarios', JSON.stringify(usuarios));
 }
-
 
 export default {
-    listar,
-    salvar
-}
-
+  listar,
+  salvar,
+};

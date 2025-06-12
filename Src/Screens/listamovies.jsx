@@ -1,26 +1,39 @@
-import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
+import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Card, Title } from 'react-native-paper';
+import { Card, Title, IconButton } from 'react-native-paper';
 import { IMAGE_BASE_URL } from '../services/Api';
 
 export default function Listamovies() {
   const [savedMovies, setSavedMovies] = useState([]);
 
   useEffect(() => {
-    async function loadFavorites() {
-      try {
-        const stored = await AsyncStorage.getItem('FAVORITE_MOVIES');
-        const parsed = stored ? JSON.parse(stored) : [];
-        setSavedMovies(parsed);
-      } catch (error) {
-        console.error('Erro ao carregar favoritos:', error);
-      }
+    loadFavorites();
+  }, []);
+
+  async function loadFavorites() {
+    try {
+      const stored = await AsyncStorage.getItem('FAVORITE_MOVIES');
+      const parsed = stored ? JSON.parse(stored) : [];
+      setSavedMovies(parsed);
+    } catch (error) {
+      console.error('Erro ao carregar favoritos:', error);
+    }
+  }
+
+  async function toggleFavorite(movie) {
+    let updatedList;
+
+    const alreadySaved = savedMovies.find((m) => m.id === movie.id);
+    if (alreadySaved) {
+      updatedList = savedMovies.filter((m) => m.id !== movie.id); // remover
+    } else {
+      updatedList = [...savedMovies, movie]; // adicionar
     }
 
-    const unsubscribe = loadFavorites();
-    return () => unsubscribe;
-  }, []);
+    setSavedMovies(updatedList);
+    await AsyncStorage.setItem('FAVORITE_MOVIES', JSON.stringify(updatedList));
+  }
 
   return (
     <View style={styles.container}>
@@ -43,6 +56,16 @@ export default function Listamovies() {
                   {item.release_date ? item.release_date.slice(0, 4) : 'Ano desconhecido'}
                 </Text>
               </View>
+
+              <IconButton
+                icon={
+                  savedMovies.find((m) => m.id === item.id)
+                    ? 'bookmark-check'
+                    : 'bookmark-outline'
+                }
+                size={24}
+                onPress={() => toggleFavorite(item)}
+              />
             </View>
           </Card>
         )}
