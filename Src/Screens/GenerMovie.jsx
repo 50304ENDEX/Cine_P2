@@ -2,7 +2,7 @@ import { StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native
 import React, { useEffect, useState } from 'react';
 import { API_KEY, BASE_URL } from '../services/Api';
 
-export default function GenerMovie({naviagtion, route}) {
+export default function GenerMovie({ navigation }) {
   const [genres, setGenres] = useState([]);
 
   useEffect(() => {
@@ -21,13 +21,16 @@ export default function GenerMovie({naviagtion, route}) {
 
   return (
     <View style={styles.container}>
-      <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 20,  color: '#fff' }}>Gêneros de Filmes</Text>
+      <Text style={styles.title}>Gêneros de Filmes</Text>
       <FlatList
         data={genres}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => console.log(`Clicou no gênero: ${item.name}`)}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('Movies', { genreId: item.id })}
+          >
             <Text style={styles.cardText}>{item.name}</Text>
           </TouchableOpacity>
         )}
@@ -46,6 +49,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  title: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 20,
+    color: '#fff',
+  },
   list: {
     alignItems: 'center',
   },
@@ -56,10 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
     alignItems: 'center',
-    elevation: 4, // sombra Android
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    elevation: 4,
   },
   cardText: {
     fontSize: 16,

@@ -1,27 +1,36 @@
 import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, Title, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { API_KEY, BASE_URL, IMAGE_BASE_URL } from '../services/Api';
 
-export default function Movies() {
+export default function Movies({ route }) {
+  const genreId = route?.params?.genreId;
   const [movies, setMovies] = useState([]);
   const [favorites, setFavorites] = useState({});
 
-  useEffect(() => {
-    async function fetchMovies() {
-      try {
-        const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}`);
-        const data = await response.json();
-        setMovies(data.results || []);
-        await loadFavorites(data.results);
-      } catch (error) {
-        console.error("Erro ao buscar filmes:", error);
-      }
-    }
+  // Recarrega os filmes toda vez que a tela for focada
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchMovies() {
+        try {
+          const url = genreId
+            ? `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}`
+            : `${BASE_URL}/discover/movie?api_key=${API_KEY}`;
 
-    fetchMovies();
-  }, []);
+          const response = await fetch(url);
+          const data = await response.json();
+          setMovies(data.results || []);
+          await loadFavorites();
+        } catch (error) {
+          console.error("Erro ao buscar filmes:", error);
+        }
+      }
+
+      fetchMovies();
+    }, [genreId])
+  );
 
   const loadFavorites = async () => {
     const stored = await AsyncStorage.getItem('FAVORITE_MOVIES');
@@ -52,7 +61,7 @@ export default function Movies() {
       }
 
       await AsyncStorage.setItem('FAVORITE_MOVIES', JSON.stringify(updated));
-      setFavorites(updatedFavorites); // Atualiza o estado para re-renderizar
+      setFavorites(updatedFavorites);
     } catch (error) {
       console.error('Erro ao salvar favorito:', error);
     }
@@ -60,7 +69,9 @@ export default function Movies() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Filmes</Text>
+      <Text style={styles.title}>
+        {genreId ? 'Filmes por Gênero' : 'Todos os Filmes'}
+      </Text>
       <FlatList
         data={movies}
         keyExtractor={(item) => item.id.toString()}
@@ -87,12 +98,11 @@ export default function Movies() {
             </View>
           </Card>
         )}
-        extraData={favorites} // força re-render quando os favoritos mudam
+        extraData={favorites}
       />
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
