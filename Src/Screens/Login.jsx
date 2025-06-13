@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInputMask } from 'react-native-masked-text';
 import { Card, Provider as PaperProvider, Button, Text, TextInput } from 'react-native-paper';
+import uuid from 'react-native-uuid';
 import * as yup from 'yup';
 
 import SettingService from '../setting/SettingService'; 
@@ -39,6 +40,7 @@ export default function Login({ navigation, route }) {
       );
 
       const usuario = {
+        id: uuid.v4(), // ID único gerado aqui
         nome: nomeUsuario,
         email: email,
         senha: senha,

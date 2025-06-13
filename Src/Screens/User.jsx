@@ -1,30 +1,71 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, FlatList } from 'react-native';
+import { Card, IconButton, Button } from 'react-native-paper';
 import SettingService from '../setting/SettingService';
 
 export default function User() {
   const [usuarios, setUsuarios] = useState([]);
+  const [expandedIds, setExpandedIds] = useState([]); // controla os ids expandidos
 
-  // Carrega os usuários ao montar o componente
   useEffect(() => {
-    async function carregarUsuarios() {
-      const lista = await SettingService.listar();
-      setUsuarios(lista);
-    }
     carregarUsuarios();
   }, []);
 
-  // Renderizador de cada item da lista
-  const renderItem = ({ item }) => (
-    <View style={styles.usuarioContainer}>
-      <Text style={styles.nome}>{item.nome}</Text>
-      <Text style={styles.email}>{item.email}</Text>
-    </View>
-  );
+  async function carregarUsuarios() {
+    const lista = await SettingService.listar();
+    setUsuarios(lista);
+  }
+
+  async function excluirUsuario(id) {
+    await SettingService.remover(id);
+    carregarUsuarios(); // Atualiza a lista após exclusão
+  }
+
+  // Função para alternar expandido/recolhido
+  function toggleExpand(id) {
+    if (expandedIds.includes(id)) {
+      setExpandedIds(expandedIds.filter(itemId => itemId !== id));
+    } else {
+      setExpandedIds([...expandedIds, id]);
+    }
+  }
+
+  const renderItem = ({ item }) => {
+    const isExpanded = expandedIds.includes(item.id);
+    return (
+      <Card style={styles.card}>
+        <Card.Title
+          title={item.nome}
+          right={() => (
+            <IconButton
+              icon="delete"
+              iconColor="#b00020"
+              size={24}
+              onPress={() => excluirUsuario(item.id)}
+            />
+          )}
+        />
+        <Card.Content>
+          <Button 
+            mode="outlined" 
+            onPress={() => toggleExpand(item.id)}
+            style={{ marginBottom: 10 }}
+          >
+            {isExpanded ? 'Recolher' : 'Expandir'}
+          </Button>
+          {isExpanded && (
+            <View>
+              <Text><Text style={styles.label}>ID:</Text> {item.id}</Text>
+              <Text><Text style={styles.label}>Email:</Text> {item.email}</Text>
+            </View>
+          )}
+        </Card.Content>
+      </Card>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Usuários cadastrados</Text>
       {usuarios.length === 0 ? (
         <Text style={styles.semUsuarios}>Nenhum usuário encontrado.</Text>
       ) : (
@@ -40,29 +81,23 @@ export default function User() {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: '#000',
     flex: 1,
     padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    paddingTop: 60,
   },
   semUsuarios: {
     fontSize: 16,
     fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 30,
+    color: 'white',
   },
-  usuarioContainer: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
+  card: {
+    marginBottom: 10,
+    padding: 10,
   },
-  nome: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  email: {
-    fontSize: 14,
-    color: '#666',
+  label: {
+    fontWeight: 'bold',
   },
 });
